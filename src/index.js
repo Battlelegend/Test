@@ -1,4 +1,4 @@
-import Paddle from '/src/paddle';
+import Paddle from './paddle.js';
 
 let canvas = document.getElementById("gameScreen");
 let ctx = canvas.getContext('2d');
@@ -8,9 +8,7 @@ const GAME_HEIGHT = 600;
 
 ctx.clearRect(0,0,800,600);
 
-ctx.fillStyle = '#f00';
-ctx.fillRect(20,20,10,100);
-
 let paddle = new Paddle(GAME_WIDTH, GAME_HEIGHT);
 
+ctx.fillStyle = '#0f0';
 paddle.draw(ctx);
