@@ -1,4 +1,3 @@
-
 const Direction = {
     NORTH: 'north',
     EAST: 'east',
@@ -7,20 +6,18 @@ const Direction = {
 };
 
 const canvas = document.getElementById("myCanvas");
+let gameOver = false;
 
 class Game {
-    constructor(width, height) {
+    constructor(width, height, assets) {
         this.context = canvas.getContext('2d');
 
         this.width = width;
         this.height = height;
-
         this.gridSize = canvas.width / width;
-
-        this.apple = new Apple(this.gridSize);
-
+        this.apple = new Apple(this.gridSize, assets);
         this.parts = [{x:0,y:0}];
-        this.snake = new Snake(Direction.EAST, this.parts, this.gridSize);
+        this.snake = new Snake(Direction.EAST, this.parts, this.gridSize, assets);
 
         this.startAnimating();
     }
@@ -32,16 +29,19 @@ class Game {
     }
 
     animate(currentTime) {
-        window.requestAnimationFrame(this.animate.bind(this));
+        if(!gameOver) {
+            window.requestAnimationFrame(this.animate.bind(this));
+            const now = currentTime;
+            const elapsed = now - this.then;
 
-        const now = currentTime;
-        const elapsed = now - this.then;
+            if (elapsed > this.frameTime) {
+                this.then = now;
 
-        if (elapsed > this.frameTime) {
-            this.then = now;
-
-            this.update();
-            this.draw();
+                this.update();
+                this.draw();
+            }
+        } else {
+            alert("GameOver");
         }
     }
 
@@ -67,14 +67,7 @@ class Game {
     update() {
         this.snake.update();
         if (this.snake.head.x >= this.width || this.snake.head.y >= this.height || this.snake.head.x < 0 || this.snake.head.y < 0){
-            alert("GAME OVER!");
-            return;
-        }
-        for (let i = 0; i < this.snake.body.length; i++) {
-            if (this.snake.head.x === this.snake.body[i].x && this.snake.head.y === this.snake.body[i].y) {
-                alert("GAME OVER!");
-                return;
-            }
+            gameOver = true;
         }
         if(this.snake.head.x === this.apple.body.x && this.snake.head.y === this.apple.body.y) {
             this.snake.body.push(this.snake.poped);
@@ -105,10 +98,15 @@ class Game {
 }
 
 class Rectangle {
-    constructor(x, y, gridSize) {
+    constructor(x, y, spriteClass, currentSprite, gridSize, assets, spriteSize) {
         this.x = x;
         this.y = y;
+        this.spriteClass = spriteClass;
+        this.currentSprite = currentSprite;
+        this.assets = assets;
+        this.spriteSize = spriteSize;
         this.gridSize = gridSize;
+        this.
     }
 
     draw(context, color) {
@@ -123,13 +121,16 @@ class Rectangle {
 }
 
 class Snake {
-    constructor(direction, parts, gridSize) {
+    constructor(direction, parts, gridSize, spriteClass, assets) {
         this.gridSize = gridSize;
-        this.head = new Rectangle(parts[0].x , parts[0].y, this.gridSize);
+        this.head = new Rectangle(parts[0].x , parts[0].y, spriteClass, 0, this.gridSize, this.assets, this.spriteSize);
         this.body = [];
         this.poped = Rectangle;
+        this.assets = assets;
+        this.spriteSize = 48;
+
         for (let i = 1; i < parts.length; i++) {
-            this.body.push(new Rectangle(parts[i].x, parts[i].y, this.gridSize));
+            this.body.push(new Rectangle(parts[i].x, parts[i].y, this.gridSize, this.assets, this.spriteSize));
         }
 
         this.direction = direction;
@@ -151,8 +152,8 @@ class Snake {
     }
 
     update() {
-            this.body.unshift(new Rectangle(this.head.x,this.head.y, this.gridSize));
-            this.poped = this.body.pop();
+        this.body.unshift(new Rectangle(this.head.x,this.head.y, this.gridSize));
+        this.poped = this.body.pop();
 
         if (this.direction === Direction.NORTH) {
             this.head.y -= 1;
@@ -167,7 +168,11 @@ class Snake {
             this.head.x -= 1
         }
 
-
+        for (let i = 0; i < this.body.length; i++) {
+            if (this.head.x === this.body[i].x && this.head.y === this.body[i].y) {
+                gameOver = true;
+            }
+        }
     }
 
     draw(context) {
@@ -181,13 +186,15 @@ class Snake {
 }
 
 class Apple {
-    constructor(gridSize) {
+    constructor(gridSize, assets, spriteSize) {
         this.gridSize = gridSize;
-        this.body = new Rectangle( Math.round((Math.random()*7.49)),  Math.round((Math.random()*7.49)), gridSize);
+        this.assets = assets;
+            this.spriteSize = spriteSize;
+        this.body = new Rectangle( Math.round((Math.random()*7.49)),  Math.round((Math.random()*7.49)), gridSize, this.assets, this.spriteSize);
     }
 
     update(x,y){
-        this.body = new Rectangle(x,y, this.gridSize);
+        this.body = new Rectangle(x,y, this.gridSize, this.assets, this.spriteSize);
     }
 
     draw(context) {
@@ -195,5 +202,34 @@ class Apple {
     }
 }
 
+class AssetLoader {
+    loadAsset(name, url) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.src = url;
+            image.addEventListener('load', function() {
+                return resolve({ name, image: this });
+            });
+        });
+    }
 
-new Game(8, 8);
+    loadAssets(assetsToLoad) {
+        return Promise.all(
+            assetsToLoad.map(asset => this.loadAsset(asset.name, asset.url))
+        ).then(assets =>
+            assets.reduceRight(
+                (acc, elem) => ({ ...acc, [elem.name]: elem.image }),
+                {}
+            )
+        );
+    }
+}
+
+new AssetLoader()
+    .loadAssets([
+        { name: 'snake', url: '/snake.png' },
+        { name: 'apple', url: '/apple.png'}
+    ])
+    .then(assets => {
+        new Game(8, 8, assets);
+    });
