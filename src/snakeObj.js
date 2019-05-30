@@ -46,6 +46,7 @@ class Game {
     }
 
     updateApple() {
+        console.log("updateApple called");
         let x = Math.round((Math.random()*7.49));
         let y = Math.round((Math.random()*7.49));
         let doubled = false;
@@ -98,7 +99,8 @@ class Game {
 }
 
 class Rectangle {
-    constructor(x, y, spriteClass, currentSprite, gridSize, assets, spriteSize) {
+    constructor(x, y, spriteClass,currentSprite, gridSize, assets, spriteSize) {
+        console.log(x,y,spriteClass);
         this.x = x;
         this.y = y;
         this.spriteClass = spriteClass;
@@ -106,33 +108,63 @@ class Rectangle {
         this.assets = assets;
         this.spriteSize = spriteSize;
         this.gridSize = gridSize;
-        this.
+        this.spriteSheet = [
+            {x:0*this.spriteSize, y:0*this.spriteSize},
+            {x:1*this.spriteSize, y:0*this.spriteSize},
+            {x:2*this.spriteSize, y:0*this.spriteSize},
+            {x:3*this.spriteSize, y:0*this.spriteSize},
+            {x:0*this.spriteSize, y:1*this.spriteSize},
+            {x:1*this.spriteSize, y:1*this.spriteSize},
+            {x:2*this.spriteSize, y:1*this.spriteSize},
+            {x:3*this.spriteSize, y:1*this.spriteSize},
+            {x:0*this.spriteSize, y:2*this.spriteSize},
+            {x:1*this.spriteSize, y:2*this.spriteSize},
+            {x:2*this.spriteSize, y:2*this.spriteSize},
+            {x:3*this.spriteSize, y:2*this.spriteSize},
+            {x:0*this.spriteSize, y:3*this.spriteSize},
+            {x:1*this.spriteSize, y:3*this.spriteSize}];
     }
 
-    draw(context, color) {
-        context.fillStyle = color;
-        context.fillRect(
-            this.x * this.gridSize,
-            this.y * this.gridSize,
-            this.gridSize,
-            this.gridSize
-        );
+    draw(context) {
+        if (this.spriteClass === "snake") {
+            context.drawImage(
+                this.assets.snake,
+                this.spriteSheet[this.currentSprite].x,
+                this.spriteSheet[this.currentSprite].y,
+                this.spriteSize,
+                this.spriteSize,
+                this.x * this.gridSize,
+                this.y * this.gridSize,
+                this.gridSize,
+                this.gridSize
+            );
+        } else {
+            context.drawImage(
+                this.assets.apple,
+                this.spriteSheet[this.currentSprite].x,
+                this.spriteSheet[this.currentSprite].y,
+                this.spriteSize,
+                this.spriteSize,
+                this.x * this.gridSize,
+                this.y * this.gridSize,
+                this.gridSize,
+                this.gridSize
+            );
+        }
     }
 }
 
 class Snake {
-    constructor(direction, parts, gridSize, spriteClass, assets) {
+    constructor(direction, parts, gridSize, assets) {
         this.gridSize = gridSize;
-        this.head = new Rectangle(parts[0].x , parts[0].y, spriteClass, 0, this.gridSize, this.assets, this.spriteSize);
+        this.spriteSize = 32;
+        this.assets = assets;
+        this.spriteNumberHead = 1;
+        this.head = new Rectangle(parts[0].x , parts[0].y, "snake", 0, this.gridSize, this.assets, this.spriteSize);
         this.body = [];
         this.poped = Rectangle;
-        this.assets = assets;
-        this.spriteSize = 48;
 
-        for (let i = 1; i < parts.length; i++) {
-            this.body.push(new Rectangle(parts[i].x, parts[i].y, this.gridSize, this.assets, this.spriteSize));
-        }
-
+        this.lastDirection = Direction.EAST;
         this.direction = direction;
 
         document.addEventListener('keyup', this.changeDirection.bind(this));
@@ -152,34 +184,69 @@ class Snake {
     }
 
     update() {
-        this.body.unshift(new Rectangle(this.head.x,this.head.y, this.gridSize));
+        let savedHeadSprite = this.spriteNumberHead;
+        let spriteNumberBody = 4;
+        if (this.body.length === 0) {
+            spriteNumberBody = this.spriteNumberHead + 4;
+        } else {
+            spriteNumberBody = this.body[this.body.length-1].currentSprite;
+        }
+        this.body.unshift(new Rectangle(this.head.x,this.head.y, "snake", this.gridSize, this.assets, this.spriteSize));
         this.poped = this.body.pop();
+        this.poped.currentSprite = spriteNumberBody;
 
         if (this.direction === Direction.NORTH) {
             this.head.y -= 1;
+            this.head.currentSprite = 0;
         }
         if (this.direction === Direction.EAST) {
             this.head.x += 1;
+            this.head.currentSprite = 1;
         }
         if (this.direction === Direction.SOUTH) {
             this.head.y += 1;
+            this.head.currentSprite = 2;
         }
         if (this.direction === Direction.WEST) {
-            this.head.x -= 1
+            this.head.x -= 1;
+            this.head.currentSprite = 3;
         }
-
-        for (let i = 0; i < this.body.length; i++) {
+        for (let i = this.body.length; i > 0; i--) {
             if (this.head.x === this.body[i].x && this.head.y === this.body[i].y) {
                 gameOver = true;
             }
+            if (i !== 1){
+                this.body[i-1].currentSprite = this.body[i-2].currentSprite;
+            } else {
+                if (this.body.length === 1) {
+                    this.body[i - 1].currentSprite = savedHeadSprite + 4;
+                } else {
+                    if (this.direction === this.lastDirection) {
+                        this.body[i - 1].currentSprite = savedHeadSprite + 4;
+                    }
+                    if (this.direction === "north" && this.lastDirection ==="west" || this.direction === "east" && this.lastDirection ==="south" ) {
+                        this.body[i - 1].currentSprite = 8;
+                    }
+                    if (this.direction === "south" && this.lastDirection ==="west" || this.direction === "east" && this.lastDirection ==="north" ) {
+                        this.body[i - 1].currentSprite = 9;
+                    }
+                    if (this.direction === "south" && this.lastDirection ==="east" || this.direction === "west" && this.lastDirection ==="north" ) {
+                        this.body[i - 1].currentSprite = 10;
+                    }
+                    if (this.direction === "north" && this.lastDirection ==="east" || this.direction === "west" && this.lastDirection ==="south" ) {
+                        this.body[i - 1].currentSprite = 11;
+                    }
+                }
+            }
         }
+        this.lastDirection = this.direction;
     }
 
     draw(context) {
-        this.head.draw(context, "yellow");
+        this.head.draw(context, this.spriteNumberHead);
         if (this.body.length > 0){
             for (let i = 0; i < this.body.length; i++) {
-                this.body[i].draw(context, "black");
+                this.body[i].draw(context);
             }
         }
     }
@@ -190,15 +257,15 @@ class Apple {
         this.gridSize = gridSize;
         this.assets = assets;
             this.spriteSize = spriteSize;
-        this.body = new Rectangle( Math.round((Math.random()*7.49)),  Math.round((Math.random()*7.49)), gridSize, this.assets, this.spriteSize);
+        this.body = new Rectangle( Math.round((Math.random()*7.49)),  Math.round((Math.random()*7.49)),"apple", 0,this.gridSize, this.assets, this.spriteSize);
     }
 
     update(x,y){
-        this.body = new Rectangle(x,y, this.gridSize, this.assets, this.spriteSize);
+        this.body = new Rectangle(x,y, "apple", 0, this.gridSize, this.assets, this.spriteSize);
     }
 
     draw(context) {
-        this.body.draw(context, "red");
+        this.body.draw(context);
     }
 }
 
