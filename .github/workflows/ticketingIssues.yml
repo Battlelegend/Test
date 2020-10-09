@@ -15,7 +15,7 @@ jobs:
       # Runs a single command using the runners shell
       - uses: konradpabjan/move-labeled-or-milestoned-issue@v2.0
         with: 
-         action-token: "${{ secrets.IssueTracking }}"
+         action-token: "${{ secrets.Issues }}"
          project-url: "https://github.com/Battlelegend/Test/projects/1"
          column-name: "To do"
          label-name: "ticket-shop"
