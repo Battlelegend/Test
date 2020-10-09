@@ -1,0 +1,21 @@
+name: Ticketing-Issues
+
+on:
+  issues:
+    types: [ labeled ]
+
+jobs:
+  # This workflow contains a single job called "build"
+  Move_Labeled_Issue_On_Project_Board:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Runs a single command using the runners shell
+      - uses: konradpabjan/move-labeled-or-milestoned-issue@v2.0
+        with: 
+         action-token: "91c1c001cd30870bf803ddf979c1fce962d86c0b"
+         project-url: "https://github.com/alexkuttig/teamsports/projects/2"
+         column-name: "To do"
+         label-name: "ticket-shop"
