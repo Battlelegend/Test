@@ -16,6 +16,6 @@ jobs:
       - uses: konradpabjan/move-labeled-or-milestoned-issue@v2.0
         with: 
          action-token: "91c1c001cd30870bf803ddf979c1fce962d86c0b"
-         project-url: "https://github.com/alexkuttig/teamsports/projects/2"
+         project-url: "https://github.com/Battlelegend/Test/projects/1"
          column-name: "To do"
          label-name: "ticket-shop"
