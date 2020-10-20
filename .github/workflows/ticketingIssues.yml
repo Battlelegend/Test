@@ -13,9 +13,19 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Runs a single command using the runners shell
+      - name: Labeled-issue
       - uses: konradpabjan/move-labeled-or-milestoned-issue@v2.0
+  		  if: ${{ github.event_name == 'labeled' }}
         with: 
-         action-token: "${{ secrets.lightToken }}"
-         project-url: "https://github.com/Battlelegend/Test/projects/1"
-         column-name: "To do"
-         label-name: "ticket-shop"
+          action-token: "${{ secrets.lightToken }}"
+          project-url: "https://github.com/Battlelegend/Test/projects/1"
+          column-name: "To do"
+          label-name: "ticket-shop"
+         
+      - name: PR-opened
+  	  - uses: docker://takanabe/github-actions-automate-projects:v0.0.1
+		    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
+			  env:
+				  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN_FERDI }}
+				  GITHUB_PROJECT_URL: https://github.com/alexkuttig/teamsports/projects/2
+				  GITHUB_PROJECT_COLUMN_NAME: Review in progress:  
