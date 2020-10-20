@@ -22,10 +22,3 @@ jobs:
           column-name: "To do"
           label-name: "ticket-shop"
          
-      - name: PR-opened
-      - uses: docker://takanabe/github-actions-automate-projects:v0.0.1
-        if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
-        env: 
-          GITHUB_TOKEN: ${{ secrets.lightToken }}
-          GITHUB_PROJECT_URL: https://github.com/Battlelegend/Test/projects/1
-          GITHUB_PROJECT_COLUMN_NAME: Done
