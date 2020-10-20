@@ -13,7 +13,6 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Runs a single command using the runners shell
-      - name: Labeled-issue
       - uses: konradpabjan/move-labeled-or-milestoned-issue@v2.0
         with: 
           action-token: "${{ secrets.lightToken }}"
@@ -21,3 +20,9 @@ jobs:
           column-name: "To do"
           label-name: "ticket-shop"
          
+      - uses: docker://takanabe/github-actions-automate-projects:v0.0.1
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.lightToken }}
+          GITHUB_PROJECT_URL: https://github.com/Battlelegend/Test/projects/1
+          GITHUB_PROJECT_COLUMN_NAME: Done
