@@ -15,7 +15,6 @@ jobs:
       # Runs a single command using the runners shell
       - name: Labeled-issue
       - uses: konradpabjan/move-labeled-or-milestoned-issue@v2.0
-        if: ${{ github.event_name == 'labeled' }}
         with: 
           action-token: "${{ secrets.lightToken }}"
           project-url: "https://github.com/Battlelegend/Test/projects/1"
